@@ -44,19 +44,17 @@ class colorui(color.colorui):
         if self.changes is None:  # not initialized yet
             return
 
-        inserted = [change for change in self.changes
-                    if change[1]['label'] == 'diff.inserted']
-        deleted = [change for change in self.changes
-                   if change[1]['label'] == 'diff.deleted']
+        new = [c for c in self.changes if c[1]['label'] == 'diff.inserted']
+        old = [c for c in self.changes if c[1]['label'] == 'diff.deleted']
 
-        if len(inserted) == 0 or len(deleted) == 0:
-            # it's new line or deleted line
+        if len(new) == 0 or len(old) == 0:
+            # it's new line or old line
             pass
-        elif len(inserted) != len(deleted):
+        elif len(new) != len(old):
             # do not markup word-highlights if numbers of lines are mismatched
             pass
         else:
-            self.rearrange_highlight(inserted, deleted)
+            self.rearrange_highlight(new, old)
 
         # flush hunk
         for change in self.changes:
@@ -64,17 +62,17 @@ class colorui(color.colorui):
 
         self.changes = []
 
-    def rearrange_highlight(self, inserted, deleted):
+    def rearrange_highlight(self, new, old):
         self.changes = []
-        deleted_lines = []
+        oldlines = []
         write = super(colorui, self).write
 
-        for i in range(len(inserted)):
-            inserted_diff, deleted_diff = worddiff("".join(inserted[i][0]),
-                                                   "".join(deleted[i][0]))
-            deleted_lines.append(deleted_diff)
+        for i in range(len(new)):
+            new_diff, old_diff = worddiff("".join(new[i][0]),
+                                          "".join(old[i][0]))
+            oldlines.append(old_diff)
 
-            prefix, highlighted, suffix = inserted_diff
+            prefix, highlighted, suffix = new_diff
             if prefix:
                 write(prefix, label='diff.inserted')
             if highlighted:
@@ -84,7 +82,7 @@ class colorui(color.colorui):
 
             write("\n")
 
-        for prefix, highlighted, suffix in deleted_lines:
+        for prefix, highlighted, suffix in oldlines:
             if prefix:
                 write(prefix, label='diff.deleted')
             if highlighted:
@@ -99,47 +97,47 @@ class colorui(color.colorui):
         super(colorui, self).flush()
 
 
-def worddiff(inserted, deleted):
+def worddiff(new, old):
     # find common prefix
     prefix = 0
-    if inserted[0] == '+' and deleted[0] == '-':
+    if new[0] == '+' and old[0] == '-':
         prefix = 1
 
-    while prefix < len(inserted) and prefix < len(deleted):
-        if inserted[prefix] == deleted[prefix]:
+    while prefix < len(new) and prefix < len(old):
+        if new[prefix] == old[prefix]:
             prefix += 1
         else:
             break
 
     # find common suffix
     suffix = 0
-    while prefix + suffix < len(inserted) and prefix + suffix < len(deleted):
-        if inserted[-suffix - 1] == deleted[-suffix - 1]:
+    while prefix + suffix < len(new) and prefix + suffix < len(old):
+        if new[-suffix - 1] == old[-suffix - 1]:
             suffix += 1
         else:
             break
-    suffix_of_inserted = len(inserted) - suffix
-    suffix_of_deleted = len(deleted) - suffix
+    suffix_of_newline = len(new) - suffix
+    suffix_of_oldline = len(old) - suffix
 
     ret = []
     if prefix <= 1 and suffix == 0:
         # two lines are different in whole
-        ret.append((inserted, '', ''))
-        ret.append((deleted, '', ''))
+        ret.append((new, None, None))
+        ret.append((old, None, None))
     else:
-        if prefix == suffix_of_inserted:  # nothing newly inserted
-            ret.append((inserted, '', ''))
+        if prefix == suffix_of_newline:  # nothing newly changed
+            ret.append((new, None, None))
         else:
-            ret.append((inserted[0:prefix],
-                        inserted[prefix:suffix_of_inserted],
-                        inserted[suffix_of_inserted:]))
+            ret.append((new[0:prefix],
+                        new[prefix:suffix_of_newline],
+                        new[suffix_of_newline:]))
 
-        if prefix == suffix_of_deleted:  # nothing newly deleted
-            ret.append((deleted, '', ''))
+        if prefix == suffix_of_oldline:  # nothing newly changed
+            ret.append((old, None, None))
         else:
-            ret.append((deleted[0:prefix],
-                        deleted[prefix:suffix_of_deleted],
-                        deleted[suffix_of_deleted:]))
+            ret.append((old[0:prefix],
+                        old[prefix:suffix_of_oldline],
+                        old[suffix_of_oldline:]))
 
     return ret
 
