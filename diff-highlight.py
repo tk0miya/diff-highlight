@@ -122,15 +122,15 @@ class colorui(color.colorui):
         # change highlighting: character base -> word base
         endswith_word = lambda s: re.search('[a-zA-Z0-9_.]$', s)
         is_word = lambda s: re.match('^[a-zA-Z0-9_.]+$', s)
-        for i in range(len(new) - 1):
-            if (new[i][1] == 'diff.inserted_highlight' and
-                new[i + 1][1] == 'diff.inserted' and
-                ((endswith_word(new[i][0]) and is_word(new[i + 1][0])) or
-                 (endswith_word(old[i][0]) and is_word(old[i + 1][0])))):
-                new[i][0] += new[i + 1][0]
-                old[i][0] += old[i + 1][0]
-                new[i + 1] = ['', 'diff.inserted_highlight']
-                old[i + 1] = ['', 'diff.deleted_highlight']
+        for i in range(len(new) - 1, 0, -1):
+            if (new[i][1] == 'diff.inserted' and
+                new[i - 1][1] == 'diff.inserted_highlight' and
+                ((endswith_word(new[i - 1][0]) and is_word(new[i][0])) or
+                 (endswith_word(old[i - 1][0]) and is_word(old[i][0])))):
+                new[i - 1][0] += new[i][0]
+                old[i - 1][0] += old[i][0]
+                del new[i]
+                del old[i]
 
         # optimize ESC chars
         for i in range(len(new) - 1, 0, -1):
