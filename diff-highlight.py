@@ -18,9 +18,14 @@ import re
 from hgext import color
 from difflib import SequenceMatcher
 
+INSERT_NORM = 'diff.inserted'
+INSERT_EMPH = 'diff.inserted_highlight'
+DELETE_NORM = 'diff.deleted'
+DELETE_EMPH = 'diff.deleted_highlight'
+
 # define new style
-color._styles['diff.inserted_highlight'] = 'green_background'
-color._styles['diff.deleted_highlight'] = 'red_background'
+color._styles[INSERT_EMPH] = 'green_background'
+color._styles[DELETE_EMPH] = 'red_background'
 
 
 class colorui(color.colorui):
@@ -32,7 +37,7 @@ class colorui(color.colorui):
 
     def write(self, *args, **opts):
         label = opts.get('label')
-        if label in ('diff.inserted', 'diff.deleted'):
+        if label in (INSERT_NORM, DELETE_NORM):
             self.hunk.append(("".join(args), opts))
         elif label == 'diff.trailingwhitespace':  # merge to hunk
             change = self.hunk.pop()
@@ -51,8 +56,8 @@ class colorui(color.colorui):
         if self.hunk is None:  # not initialized yet
             return
 
-        new = [c[0] for c in self.hunk if c[1]['label'] == 'diff.inserted']
-        old = [c[0] for c in self.hunk if c[1]['label'] == 'diff.deleted']
+        new = [c[0] for c in self.hunk if c[1]['label'] == INSERT_NORM]
+        old = [c[0] for c in self.hunk if c[1]['label'] == DELETE_NORM]
 
         self.pprint_hunk(new, 0, len(new), old, 0, len(old))
 
@@ -76,9 +81,9 @@ class colorui(color.colorui):
         # no non-identical "pretty close" pair
         if best_ratio < cutoff:
             for line in old[old_lo:old_hi]:
-                write(line, "\n", label="diff.deleted")
+                write(line, "\n", label=DELETE_NORM)
             for line in new[new_lo:new_hi]:
-                write(line, "\n", label="diff.inserted")
+                write(line, "\n", label=INSERT_NORM)
 
             return
 
@@ -97,34 +102,33 @@ class colorui(color.colorui):
                 self.pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi)
             else:
                 for line in new[new_lo:new_hi]:
-                    write(line, "\n", label="diff.inserted")
+                    write(line, "\n", label=INSERT_NORM)
         elif old_lo < old_hi:
             for line in old[old_lo:old_hi]:
-                write(line, "\n", label="diff.deleted")
+                write(line, "\n", label=DELETE_NORM)
 
     def pprint_pair(self, cruncher, newline, oldline):
         write = super(colorui, self).write
 
-        new = [[newline[0].decode('utf-8'), 'diff.inserted']]
-        old = [[oldline[0].decode('utf-8'), 'diff.deleted']]
+        new = [[newline[0].decode('utf-8'), INSERT_NORM]]
+        old = [[oldline[0].decode('utf-8'), DELETE_NORM]]
         cruncher.set_seqs(newline[1:].decode('utf-8'),
                           oldline[1:].decode('utf-8'))
         for tag, new1, new2, old1, old2 in cruncher.get_opcodes():
             new_piece = newline[new1 + 1:new2 + 1]
             old_piece = oldline[old1 + 1:old2 + 1]
             if tag == 'equal':
-                new.append([new_piece, "diff.inserted"])
-                old.append([old_piece, "diff.deleted"])
+                new.append([new_piece, INSERT_NORM])
+                old.append([old_piece, DELETE_NORM])
             else:
-                new.append([new_piece, "diff.inserted_highlight"])
-                old.append([old_piece, "diff.deleted_highlight"])
+                new.append([new_piece, INSERT_EMPH])
+                old.append([old_piece, DELETE_EMPH])
 
         # change highlighting: character base -> word base
         endswith_word = lambda s: re.search('[a-zA-Z0-9_.]$', s)
         is_word = lambda s: re.match('^[a-zA-Z0-9_.]+$', s)
         for i in range(len(new) - 1, 0, -1):
-            if (new[i][1] == 'diff.inserted' and
-                new[i - 1][1] == 'diff.inserted_highlight' and
+            if (new[i][1] == INSERT_NORM and new[i - 1][1] == INSERT_EMPH and
                 ((endswith_word(new[i - 1][0]) and is_word(new[i][0])) or
                  (endswith_word(old[i - 1][0]) and is_word(old[i][0])))):
                 new[i - 1][0] += new[i][0]
