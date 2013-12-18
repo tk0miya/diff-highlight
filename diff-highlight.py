@@ -105,9 +105,10 @@ class colorui(color.colorui):
     def pprint_pair(self, cruncher, newline, oldline):
         write = super(colorui, self).write
 
-        new = [[newline[0], 'diff.inserted']]
-        old = [[oldline[0], 'diff.deleted']]
-        cruncher.set_seqs(newline[1:], oldline[1:])
+        new = [[newline[0].decode('utf-8'), 'diff.inserted']]
+        old = [[oldline[0].decode('utf-8'), 'diff.deleted']]
+        cruncher.set_seqs(newline[1:].decode('utf-8'),
+                          oldline[1:].decode('utf-8'))
         for tag, new1, new2, old1, old2 in cruncher.get_opcodes():
             new_piece = newline[new1 + 1:new2 + 1]
             old_piece = oldline[old1 + 1:old2 + 1]
@@ -144,7 +145,7 @@ class colorui(color.colorui):
 
         # write highlighted lines
         for string, label in old + [['\n', '']] + new + [['\n', '']]:
-            write(string, label=label)
+            write(string.encode('utf-8'), label=label)
 
 
 def uisetup(ui):
