@@ -125,16 +125,12 @@ class colorui(color.colorui):
                 old.append([old_piece, DELETE_EMPH])
 
         # change highlighting: character base -> word base
-        endswith_word = lambda s: re.search('[a-zA-Z0-9_.]$', s)
-        is_word = lambda s: re.match('^[a-zA-Z0-9_.]+$', s)
-        for i in range(len(new) - 1, 0, -1):
-            if (new[i][1] == INSERT_NORM and new[i - 1][1] == INSERT_EMPH and
-                ((endswith_word(new[i - 1][0]) and is_word(new[i][0])) or
-                 (endswith_word(old[i - 1][0]) and is_word(old[i][0])))):
-                new[i - 1][0] += new[i][0]
-                old[i - 1][0] += old[i][0]
-                del new[i]
-                del old[i]
+        for i in range(len(new) - 1, 1, -1):
+            if is_mergeable(new, old, i):
+                new[i - 2][0] += new[i - 1][0]
+                old[i - 2][0] += old[i - 1][0]
+                del new[i - 1]
+                del old[i - 1]
 
         # optimize ESC chars
         for i in range(len(new) - 1, 0, -1):
@@ -150,6 +146,45 @@ class colorui(color.colorui):
         # write highlighted lines
         for string, label in old + [['\n', '']] + new + [['\n', '']]:
             write(string.encode('utf-8'), label=label)
+
+
+def is_mergeable(new, old, i):
+    chars = '[a-zA-Z0-9_.]'
+    startswith_word = lambda s: re.match('^%s' % chars, s)
+    endswith_word = lambda s: re.search('%s$' % chars, s)
+    is_word = lambda s: re.match('^(%s|\s)+$' % chars, s)
+
+    marks = '[ !"#$%&\'()*+,\-./:;<=>?@\[\\]^_{|}~]'
+    startswith_mark = lambda s: re.match('^%s' % marks, s)
+    endswith_mark = lambda s: re.search('%s$' % marks, s)
+    is_mark = lambda s: re.match('^(%s|\s)+$' % marks, s)
+
+    n1, n2, n3 = new[i - 2: i + 1]
+    o1, o2, o3 = old[i - 2: i + 1]
+    if not (n1[1] == n3[1] == INSERT_EMPH and n2[1] == INSERT_NORM):
+        return False
+
+    # WORD1 ends with word(alnum) and WORD2 is word
+    if ((endswith_word(n1[0]) and is_word(n2[0])) or
+       (endswith_word(o1[0]) and is_word(o2[0]))):
+        return True
+
+    # WORD2 is word and WORD3 starts with word(alnum)
+    if ((is_word(n2[0]) and startswith_word(n3[0])) or
+       (is_word(o2[0]) and startswith_word(o3[0]))):
+        return True
+
+    # WORD1 ends with any marks and WORD2 is any marks
+    if ((endswith_mark(n1[0]) and is_mark(n2[0])) or
+       (endswith_mark(o1[0]) and is_mark(o2[0]))):
+        return True
+
+    # WORD2 is any marks and WORD3 starts with any marks
+    if ((is_mark(n1[0]) and startswith_mark(n2[0])) or
+       (is_mark(o1[0]) and startswith_mark(o2[0]))):
+        return True
+
+    return False
 
 
 def uisetup(ui):
