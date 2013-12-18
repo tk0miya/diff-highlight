@@ -84,7 +84,7 @@ class colorui(color.colorui):
 
         self.pprint_hunk_helper(new, new_lo, best_i,
                                 old, old_lo, best_j)
-        self.pprint_word_highlight(cruncher, new[best_i], old[best_j])
+        self.pprint_pair(cruncher, new[best_i], old[best_j])
         self.pprint_hunk_helper(new, best_i + 1, new_hi,
                                 old, best_j + 1, old_hi)
 
@@ -102,11 +102,11 @@ class colorui(color.colorui):
             for line in old[old_lo:old_hi]:
                 write(line, "\n", label="diff.deleted")
 
-    def pprint_word_highlight(self, cruncher, newline, oldline):
+    def pprint_pair(self, cruncher, newline, oldline):
         write = super(colorui, self).write
 
-        new = [(newline[0], 'diff.inserted')]
-        old = [(oldline[0], 'diff.deleted')]
+        new = [[newline[0], 'diff.inserted']]
+        old = [[oldline[0], 'diff.deleted']]
         cruncher.set_seqs(newline[1:], oldline[1:])
         for tag, new1, new2, old1, old2 in cruncher.get_opcodes():
             new_piece = newline[new1 + 1:new2 + 1]
@@ -128,16 +128,23 @@ class colorui(color.colorui):
                  (endswith_word(old[i][0]) and is_word(old[i + 1][0])))):
                 new[i][0] += new[i + 1][0]
                 old[i][0] += old[i + 1][0]
-                new[i + 1] = ('', 'diff.inserted_highlight')
-                old[i + 1] = ('', 'diff.deleted_highlight')
+                new[i + 1] = ['', 'diff.inserted_highlight']
+                old[i + 1] = ['', 'diff.deleted_highlight']
 
-        for string, label in old:
-            write(string, label=label)
-        write("\n")  # EOL for old line
+        # optimize ESC chars
+        for i in range(len(new) - 1, 0, -1):
+            if new[i][1] == new[i - 1][1]:
+                new[i - 1][0] += new[i][0]
+                del new[i]
 
-        for string, label in new:
+        for i in range(len(old) - 1, 0, -1):
+            if old[i][1] == old[i - 1][1]:
+                old[i - 1][0] += old[i][0]
+                del old[i]
+
+        # write highlighted lines
+        for string, label in old + [['\n', '']] + new + [['\n', '']]:
             write(string, label=label)
-        write("\n")  # EOL for new line
 
 
 def uisetup(ui):
