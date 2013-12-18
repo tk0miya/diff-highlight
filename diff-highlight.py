@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+#  Copyright (c) 2001-2013 Python Software Foundation; All Rights Reserved
 #  Copyright 2013 Takeshi KOMIYA
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,9 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import re
 from hgext import color
+from difflib import SequenceMatcher
 
 # define new style
 color._styles['diff.inserted_highlight'] = 'green_background'
@@ -21,125 +24,120 @@ color._styles['diff.deleted_highlight'] = 'red_background'
 
 
 class colorui(color.colorui):
-    changes = None
+    hunk = None
 
     def __init__(self, src=None):
         super(colorui, self).__init__(src)
-        self.changes = []
+        self.hunk = []
 
     def write(self, *args, **opts):
         label = opts.get('label')
         if label in ('diff.inserted', 'diff.deleted'):
-            self.changes.append((args, opts))
+            self.hunk.append(("".join(args), opts))
         elif label == 'diff.trailingwhitespace':  # merge to hunk
-            change = self.changes.pop()
-            self.changes.append((change[0] + args, change[1]))
-        elif label == '' and args == ("\n",) and self.changes:
-            self.changes.append((args, opts))
+            change = self.hunk.pop()
+            self.hunk.append((change[0] + "".join(args), change[1]))
+        elif label == '' and args == ("\n",) and self.hunk:
+            self.hunk.append((args, opts))
         else:
             self.flush_hunk()
             super(colorui, self).write(*args, **opts)
-
-    def flush_hunk(self):
-        if self.changes is None:  # not initialized yet
-            return
-
-        new = [c for c in self.changes if c[1]['label'] == 'diff.inserted']
-        old = [c for c in self.changes if c[1]['label'] == 'diff.deleted']
-
-        if len(new) == 0 or len(old) == 0:
-            # it's new line or old line
-            pass
-        elif len(new) != len(old):
-            # do not markup word-highlights if numbers of lines are mismatched
-            pass
-        else:
-            self.rearrange_highlight(new, old)
-
-        # flush hunk
-        for change in self.changes:
-            super(colorui, self).write(*change[0], **change[1])
-
-        self.changes = []
-
-    def rearrange_highlight(self, new, old):
-        self.changes = []
-        oldlines = []
-        write = super(colorui, self).write
-
-        for i in range(len(new)):
-            new_diff, old_diff = worddiff("".join(new[i][0]),
-                                          "".join(old[i][0]))
-            oldlines.append(old_diff)
-
-            prefix, highlighted, suffix = new_diff
-            if prefix:
-                write(prefix, label='diff.inserted')
-            if highlighted:
-                write(highlighted, label='diff.inserted_highlight')
-            if suffix:
-                write(suffix, label='diff.inserted')
-
-            write("\n")
-
-        for prefix, highlighted, suffix in oldlines:
-            if prefix:
-                write(prefix, label='diff.deleted')
-            if highlighted:
-                write(highlighted, label='diff.deleted_highlight')
-            if suffix:
-                write(suffix, label='diff.deleted')
-
-            write("\n")
 
     def flush(self):
         self.flush_hunk()
         super(colorui, self).flush()
 
+    def flush_hunk(self):
+        if self.hunk is None:  # not initialized yet
+            return
 
-def worddiff(new, old):
-    # find common prefix
-    prefix = 0
-    if new[0] == '+' and old[0] == '-':
-        prefix = 1
+        new = [c[0] for c in self.hunk if c[1]['label'] == 'diff.inserted']
+        old = [c[0] for c in self.hunk if c[1]['label'] == 'diff.deleted']
 
-    while prefix < len(new) and prefix < len(old):
-        if new[prefix] == old[prefix]:
-            prefix += 1
-        else:
-            break
+        self.pprint_hunk(new, 0, len(new), old, 0, len(old))
 
-    # find common suffix
-    suffix = 0
-    while prefix + suffix < len(new) and prefix + suffix < len(old):
-        if new[-suffix - 1] == old[-suffix - 1]:
-            suffix += 1
-        else:
-            break
-    suffix_of_newline = len(new) - suffix
-    suffix_of_oldline = len(old) - suffix
+        self.hunk = []
 
-    ret = []
-    if prefix <= 1 and suffix == 0:
-        # two lines are different in whole
-        ret.append((new, None, None))
-        ret.append((old, None, None))
-    else:
-        if prefix == suffix_of_newline:  # nothing newly changed
-            ret.append((new, None, None))
-        else:
-            ret.append((new[0:prefix],
-                        new[prefix:suffix_of_newline],
-                        new[suffix_of_newline:]))
+    def pprint_hunk(self, new, new_lo, new_hi, old, old_lo, old_hi):
+        # derived from difflib.py (Python stdlib) Differ#_fancy_replace()
+        best_ratio, cutoff = 0.59, 0.60
+        write = super(colorui, self).write
 
-        if prefix == suffix_of_oldline:  # nothing newly changed
-            ret.append((old, None, None))
-        else:
-            ret.append((old[0:prefix],
-                        old[prefix:suffix_of_oldline],
-                        old[suffix_of_oldline:]))
+        cruncher = SequenceMatcher(None)
+        for j in range(old_lo, old_hi):
+            cruncher.set_seq2(old[j])
+            for i in range(new_lo, new_hi):
+                cruncher.set_seq1(new[i])
+                if (cruncher.real_quick_ratio() > best_ratio and
+                   cruncher.quick_ratio() > best_ratio and
+                   cruncher.ratio() > best_ratio):
+                    best_ratio, best_i, best_j = cruncher.ratio(), i, j
 
-    return ret
+        # no non-identical "pretty close" pair
+        if best_ratio < cutoff:
+            for line in old[old_lo:old_hi]:
+                write(line, "\n", label="diff.deleted")
+            for line in new[new_lo:new_hi]:
+                write(line, "\n", label="diff.inserted")
+
+            return
+
+        self.pprint_hunk_helper(new, new_lo, best_i,
+                                old, old_lo, best_j)
+        self.pprint_word_highlight(cruncher, new[best_i], old[best_j])
+        self.pprint_hunk_helper(new, best_i + 1, new_hi,
+                                old, best_j + 1, old_hi)
+
+    def pprint_hunk_helper(self, new, new_lo, new_hi, old, old_lo, old_hi):
+        # derived from difflib.py (Python stdlib) Differ#_fancy_helper()
+        write = super(colorui, self).write
+
+        if new_lo < new_hi:
+            if old_lo < old_hi:
+                self.pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi)
+            else:
+                for line in new[new_lo:new_hi]:
+                    write(line, "\n", label="diff.inserted")
+        elif old_lo < old_hi:
+            for line in old[old_lo:old_hi]:
+                write(line, "\n", label="diff.deleted")
+
+    def pprint_word_highlight(self, cruncher, newline, oldline):
+        write = super(colorui, self).write
+
+        new = [(newline[0], 'diff.inserted')]
+        old = [(oldline[0], 'diff.deleted')]
+        cruncher.set_seqs(newline[1:], oldline[1:])
+        for tag, new1, new2, old1, old2 in cruncher.get_opcodes():
+            new_piece = newline[new1 + 1:new2 + 1]
+            old_piece = oldline[old1 + 1:old2 + 1]
+            if tag == 'equal':
+                new.append([new_piece, "diff.inserted"])
+                old.append([old_piece, "diff.deleted"])
+            else:
+                new.append([new_piece, "diff.inserted_highlight"])
+                old.append([old_piece, "diff.deleted_highlight"])
+
+        # change highlighting: character base -> word base
+        endswith_word = lambda s: re.search('[a-zA-Z0-9_.]$', s)
+        is_word = lambda s: re.match('^[a-zA-Z0-9_.]+$', s)
+        for i in range(len(new) - 1):
+            if (new[i][1] == 'diff.inserted_highlight' and
+                new[i + 1][1] == 'diff.inserted' and
+                ((endswith_word(new[i][0]) and is_word(new[i + 1][0])) or
+                 (endswith_word(old[i][0]) and is_word(old[i + 1][0])))):
+                new[i][0] += new[i + 1][0]
+                old[i][0] += old[i + 1][0]
+                new[i + 1] = ('', 'diff.inserted_highlight')
+                old[i + 1] = ('', 'diff.deleted_highlight')
+
+        for string, label in old:
+            write(string, label=label)
+        write("\n")  # EOL for old line
+
+        for string, label in new:
+            write(string, label=label)
+        write("\n")  # EOL for new line
 
 
 def uisetup(ui):
