@@ -177,8 +177,8 @@ def is_mergeable(new, old, i):
         return True
 
     # WORD2 is any marks and WORD3 starts with any marks
-    if ((is_mark(n1[0]) and startswith_mark(n2[0])) or
-       (is_mark(o1[0]) and startswith_mark(o2[0]))):
+    if ((is_mark(n2[0]) and startswith_mark(n3[0])) or
+       (is_mark(o2[0]) and startswith_mark(o3[0]))):
         return True
 
     return False
