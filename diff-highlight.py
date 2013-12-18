@@ -16,16 +16,13 @@
 
 import re
 from hgext import color
+from mercurial import extensions
 from difflib import SequenceMatcher
 
 INSERT_NORM = 'diff.inserted'
 INSERT_EMPH = 'diff.inserted_highlight'
 DELETE_NORM = 'diff.deleted'
 DELETE_EMPH = 'diff.deleted_highlight'
-
-# define new style
-color._styles[INSERT_EMPH] = 'green_background'
-color._styles[DELETE_EMPH] = 'red_background'
 
 
 class colorui(color.colorui):
@@ -193,3 +190,17 @@ def uisetup(ui):
     if not isinstance(ui, colorui):
         colorui.__bases__ = (ui.__class__,)
         ui.__class__ = colorui
+
+    def colorconfig(orig, *args, **kwargs):
+        ret = orig(*args, **kwargs)
+
+        styles = color._styles
+        if INSERT_EMPH not in styles:
+            styles[INSERT_EMPH] = styles[INSERT_NORM] + ' inverse'
+
+        if DELETE_EMPH not in styles:
+            styles[DELETE_EMPH] = styles[DELETE_NORM] + ' inverse'
+
+        return ret
+
+    extensions.wrapfunction(color, 'configstyles', colorconfig)
