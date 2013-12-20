@@ -17,7 +17,6 @@ setup(
     version='0.1.0',
     description='pretty diff highlighter; emphasis changed words in diff',
     long_description=open("README.rst").read(),
-    long_description='',
     classifiers=classifiers,
     keywords=['mercurial', 'git', 'diff', 'highlight'],
     author='Takeshi Komiya',
