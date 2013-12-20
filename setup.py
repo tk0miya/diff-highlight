@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from setuptools import setup
+from setuptools import setup, find_packages
 
 classifiers = [
     "Development Status :: 4 - Production/Beta",
@@ -25,6 +25,7 @@ setup(
     download_url='http://pypi.python.org/pypi/diff-highlight',
     license='Apache License 2.0',
     py_modules=['diff_highlight'],
+    packates=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
 )
