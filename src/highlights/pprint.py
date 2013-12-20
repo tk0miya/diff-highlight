@@ -138,12 +138,12 @@ def pprint_pair(cruncher, newline, oldline):
 
     # optimize ESC chars
     for i in range(len(new) - 1, 0, -1):
-        if new[i][1] == new[i - 1][1]:
+        if new[i][1:] == new[i - 1][1:]:
             new[i - 1][0] += new[i][0]
             del new[i]
 
     for i in range(len(old) - 1, 0, -1):
-        if old[i][1] == old[i - 1][1]:
+        if old[i][1:] == old[i - 1][1:]:
             old[i - 1][0] += old[i][0]
             del old[i]
 
@@ -166,8 +166,8 @@ def is_mergeable(new, old, i):
 
     n1, n2, n3 = new[i - 2: i + 1]
     o1, o2, o3 = old[i - 2: i + 1]
-    if not (n1[1] == n3[1] == INSERTED and
-            n1[2] is True and n3[2] is True and n2[1] == NORMAL):
+    if not (n1[1] == n2[1] == n3[1] == INSERTED and
+            (n1[2], n2[2], n3[2]) == (True, False, True)):
         return False
 
     # WORD1 ends with word(alnum) and WORD2 is word
