@@ -17,6 +17,7 @@
 import re
 from hgext import color
 from mercurial import extensions
+from mercurial.i18n import _
 from difflib import SequenceMatcher
 
 INSERT_NORM = 'diff.inserted'
@@ -187,6 +188,14 @@ def is_mergeable(new, old, i):
 def uisetup(ui):
     if ui.plain():
         return
+
+    try:
+        extensions.find('color')
+    except KeyError:
+        ui.warn(_("warning: 'diff-highlight' requires 'color' extension "
+                  "to be enabled, but not\n"))
+        return
+
     if not isinstance(ui, colorui):
         colorui.__bases__ = (ui.__class__,)
         ui.__class__ = colorui
