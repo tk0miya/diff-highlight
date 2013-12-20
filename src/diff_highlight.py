@@ -79,9 +79,11 @@ class colorui(color.colorui):
         # no non-identical "pretty close" pair
         if best_ratio < cutoff:
             for line in old[old_lo:old_hi]:
-                write(line, "\n", label=DELETE_NORM)
+                write(line, label=DELETE_NORM)
+                write("\n", label='')
             for line in new[new_lo:new_hi]:
-                write(line, "\n", label=INSERT_NORM)
+                write(line, label=INSERT_NORM)
+                write("\n", label='')
 
             return
 
@@ -100,10 +102,12 @@ class colorui(color.colorui):
                 self.pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi)
             else:
                 for line in new[new_lo:new_hi]:
-                    write(line, "\n", label=INSERT_NORM)
+                    write(line, label=INSERT_NORM)
+                    write("\n", label='')
         elif old_lo < old_hi:
             for line in old[old_lo:old_hi]:
-                write(line, "\n", label=DELETE_NORM)
+                write(line, label=DELETE_NORM)
+                write("\n", label='')
 
     def pprint_pair(self, cruncher, newline, oldline):
         write = super(colorui, self).write
