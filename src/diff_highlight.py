@@ -17,7 +17,7 @@
 from hgext import color
 from mercurial import extensions
 from mercurial.i18n import _
-from highlights.pprint import NORMAL, INSERTED, DELETED, pprint_hunk
+from highlights.pprint import INSERTED, DELETED, pprint_hunk
 
 INSERT_NORM = 'diff.inserted'
 INSERT_EMPH = 'diff.inserted_highlight'
