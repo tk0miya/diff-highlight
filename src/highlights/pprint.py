@@ -114,10 +114,12 @@ def pprint_hunk_helper(new, new_lo, new_hi, old, old_lo, old_hi):
 
 
 def pprint_pair(cruncher, newline, oldline):
-    new = [[newline[0].decode('utf-8'), INSERTED, False]]
-    old = [[oldline[0].decode('utf-8'), DELETED, False]]
+    newline = newline.decode('utf-8')
+    oldline = oldline.decode('utf-8')
+    new = [[newline[0], INSERTED, False]]
+    old = [[oldline[0], DELETED, False]]
 
-    cruncher.set_seqs(newline[1:].decode('utf-8'), oldline[1:].decode('utf-8'))
+    cruncher.set_seqs(newline[1:], oldline[1:])
     for tag, new1, new2, old1, old2 in cruncher.get_opcodes():
         new_piece = newline[new1 + 1:new2 + 1]
         old_piece = oldline[old1 + 1:old2 + 1]
@@ -150,44 +152,44 @@ def pprint_pair(cruncher, newline, oldline):
     # write highlighted lines
     merged = old + [['\n', NORMAL, False]] + new + [['\n', NORMAL, False]]
     for string, style, highlighted in merged:
-        yield string, style, highlighted
+        yield string.encode('utf-8'), style, highlighted
 
 
 def is_mergeable(new, old, i):
     chars = '[a-zA-Z0-9_.]'
-    startswith_word = lambda s: re.match('^%s' % chars, s)
-    endswith_word = lambda s: re.search('%s$' % chars, s)
-    is_word = lambda s: re.match('^(%s|\s)+$' % chars, s)
+    startswith_word = lambda s: re.match('^%s' % chars, s[0])
+    endswith_word = lambda s: re.search('%s$' % chars, s[0])
+    is_word = lambda s: re.match('^(%s+|\s+)$' % chars, s[0])
 
     marks = '[ !"#$%&\'()*+,\-./:;<=>?@\[\\]^_{|}~]'
-    startswith_mark = lambda s: re.match('^%s' % marks, s)
-    endswith_mark = lambda s: re.search('%s$' % marks, s)
-    is_mark = lambda s: re.match('^(%s|\s)+$' % marks, s)
+    startswith_mark = lambda s: re.match('^%s' % marks, s[0])
+    endswith_mark = lambda s: re.search('%s$' % marks, s[0])
+    is_mark = lambda s: re.match('^(%s+|\s+)$' % marks, s[0])
 
     n1, n2, n3 = new[i - 2: i + 1]
     o1, o2, o3 = old[i - 2: i + 1]
-    if not (n1[1] == n2[1] == n3[1] == INSERTED and
-            (n1[2], n2[2], n3[2]) == (True, False, True)):
+    if ((n1[2], n2[2], n3[2]) != (True, False, True) and
+       (o1[2], o2[2], o3[2]) != (True, False, True)):
         return False
 
     # WORD1 ends with word(alnum) and WORD2 is word
-    if ((endswith_word(n1[0]) and is_word(n2[0])) or
-       (endswith_word(o1[0]) and is_word(o2[0]))):
+    if ((endswith_word(n1) and is_word(n2)) or
+       (endswith_word(o1) and is_word(o2))):
         return True
 
     # WORD2 is word and WORD3 starts with word(alnum)
-    if ((is_word(n2[0]) and startswith_word(n3[0])) or
-       (is_word(o2[0]) and startswith_word(o3[0]))):
+    if ((is_word(n2) and startswith_word(n3)) or
+       (is_word(o2) and startswith_word(o3))):
         return True
 
     # WORD1 ends with any marks and WORD2 is any marks
-    if ((endswith_mark(n1[0]) and is_mark(n2[0])) or
-       (endswith_mark(o1[0]) and is_mark(o2[0]))):
+    if ((endswith_mark(n1) and is_mark(n2)) or
+       (endswith_mark(o1) and is_mark(o2))):
         return True
 
     # WORD2 is any marks and WORD3 starts with any marks
-    if ((is_mark(n2[0]) and startswith_mark(n3[0])) or
-       (is_mark(o2[0]) and startswith_mark(o3[0]))):
+    if ((is_mark(n2) and startswith_mark(n3)) or
+       (is_mark(o2) and startswith_mark(o3))):
         return True
 
     return False
