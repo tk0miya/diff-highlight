@@ -40,7 +40,7 @@ class colorui(color.colorui):
             change = self.hunk.pop()
             self.hunk.append((change[0] + "".join(args), change[1]))
         elif label == '' and args == ("\n",) and self.hunk:
-            self.hunk.append((args, opts))
+            self.hunk.append((args[0], opts))
         else:
             self.flush_hunk()
             super(colorui, self).write(*args, **opts)
@@ -53,24 +53,25 @@ class colorui(color.colorui):
         if self.hunk is None:  # not initialized yet
             return
 
-        new = [c[0] for c in self.hunk if c[1]['label'] == INSERT_NORM]
-        old = [c[0] for c in self.hunk if c[1]['label'] == DELETE_NORM]
+        hunk = [(ret[0].decode('utf-8'), ret[1]) for ret in self.hunk]
+        new = [c[0] for c in hunk if c[1]['label'] == INSERT_NORM]
+        old = [c[0] for c in hunk if c[1]['label'] == DELETE_NORM]
 
         write = super(colorui, self).write
         for string, style, highlighted in pprint_hunk(new, 0, len(new),
                                                       old, 0, len(old)):
             if style == INSERTED:
                 if highlighted:
-                    write(string, label=INSERT_EMPH)
+                    write(string.encode('utf-8'), label=INSERT_EMPH)
                 else:
-                    write(string, label=INSERT_NORM)
+                    write(string.encode('utf-8'), label=INSERT_NORM)
             elif style == DELETED:
                 if highlighted:
-                    write(string, label=DELETE_EMPH)
+                    write(string.encode('utf-8'), label=DELETE_EMPH)
                 else:
-                    write(string, label=DELETE_NORM)
+                    write(string.encode('utf-8'), label=DELETE_NORM)
             else:
-                write(string, label='')
+                write(string.encode('utf-8'), label='')
 
         self.hunk = []
 

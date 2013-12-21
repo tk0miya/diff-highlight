@@ -114,8 +114,6 @@ def pprint_hunk_helper(new, new_lo, new_hi, old, old_lo, old_hi):
 
 
 def pprint_pair(cruncher, newline, oldline):
-    newline = newline.decode('utf-8')
-    oldline = oldline.decode('utf-8')
     new = [[newline[0], INSERTED, False]]
     old = [[oldline[0], DELETED, False]]
 
