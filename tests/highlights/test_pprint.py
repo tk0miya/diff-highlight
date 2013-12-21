@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import six
 import sys
 from difflib import SequenceMatcher
 from highlights.pprint import NORMAL, INSERTED, DELETED
