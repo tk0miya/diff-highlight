@@ -22,7 +22,7 @@ And then, add color and diff_highlight to your extensions list on $HOME/.hgrc::
 
 Requirements
 ============
-* Python 2.6, 2.7
+* Python 2.6, 2.7, 3.2, 3.3
 
 License
 =======
