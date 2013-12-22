@@ -25,7 +25,8 @@ def highlight_main():
     new, old = [], []
     in_header = True
     for rawline in sys.stdin:
-        rawline = rawline.decode('utf-8')
+        if sys.version_info < (3, 0):
+            rawline = rawline.decode('utf-8')
 
         # strip ESC chars and CR/LF
         stripped = re.sub('\x1b\[[0-9;]*m', '', rawline.rstrip("\r\n"))
@@ -76,7 +77,10 @@ def write(string, color=None, highlight=False):
     if highlight:
         sys.stdout.write("\x1b[7m")
 
-    sys.stdout.write(string.encode('utf-8'))
+    if sys.version_info < (3, 0):
+        sys.stdout.write(string.encode('utf-8'))
+    else:
+        sys.stdout.write(string)
 
     if highlight or color:
         sys.stdout.write("\x1b[%dm" % colortable['none'])

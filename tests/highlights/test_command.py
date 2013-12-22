@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-from cStringIO import StringIO
 from highlights.command import highlight_main
 
 if sys.version_info < (2, 7):
@@ -8,10 +7,17 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
+if sys.version_info < (3, 0):
+    from cStringIO import StringIO
+else:
+    from io import StringIO
+
 if sys.version_info > (2, 5):
     from mock import patch
 else:
     patch = lambda *args: lambda fn: None
+
+version_info = sys.version_info
 
 
 class TestHighlightCommand(unittest.TestCase):
@@ -28,6 +34,7 @@ class TestHighlightCommand(unittest.TestCase):
                 " \n"]
         sys.stdin = diff
         sys.stdout = StringIO()
+        sys.version_info = version_info
 
         start = lambda *colors: "".join("\x1b[%dm" % c for c in colors)
         stop = start(0)

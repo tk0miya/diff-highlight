@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 import sys
-from hgext import color
-from diff_highlight import colorui
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
     import unittest
 
+if sys.version_info < (3, 0):
+    from hgext import color
+    from diff_highlight import colorui
+else:
+    color = None
+
 
 class TestDiffHighlight(unittest.TestCase):
+    @unittest.skipIf(color is None, "mercurial is not supported py3")
     def test_colorui(self):
         import curses
         curses.setupterm("xterm", 1)

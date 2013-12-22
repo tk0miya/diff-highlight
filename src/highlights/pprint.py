@@ -150,7 +150,7 @@ def pprint_pair(cruncher, newline, oldline):
     # write highlighted lines
     merged = old + [['\n', NORMAL, False]] + new + [['\n', NORMAL, False]]
     for string, style, highlighted in merged:
-        yield string.encode('utf-8'), style, highlighted
+        yield string, style, highlighted
 
 
 def is_mergeable(new, old, i):
