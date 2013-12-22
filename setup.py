@@ -28,7 +28,7 @@ else:
 
 setup(
     name='diff-highlight',
-    version='1.0.0',
+    version='1.0.1',
     description='pretty diff highlighter; emphasis changed words in diff',
     long_description=open("README.rst").read(),
     classifiers=classifiers,

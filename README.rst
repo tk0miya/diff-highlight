@@ -51,6 +51,10 @@ Apache License 2.0
 History
 =======
 
+1.0.1 (2013-12-22)
+-------------------
+* Fix diff-highlight command failed with python 2.4
+
 1.0.0 (2013-12-22)
 -------------------
 * Add diff-highlight command
