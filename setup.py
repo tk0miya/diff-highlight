@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 from setuptools import setup, find_packages
 
 classifiers = [
@@ -14,6 +15,10 @@ classifiers = [
     "Topic :: Software Development :: Version Control",
     "Topic :: Text Processing :: Filters",
 ]
+
+test_requires = ['mercurial']
+if sys.version_info < (2, 7):
+    test_requires.append('unittest2')
 
 setup(
     name='diff-highlight',
@@ -31,6 +36,7 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
+    tests_require=test_requires,
     entry_points="""
        [console_scripts]
        diff-highlight = highlights.command:highlight_main
