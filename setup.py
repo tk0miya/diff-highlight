@@ -33,7 +33,7 @@ setup(
     keywords=['mercurial', 'git', 'diff', 'highlight'],
     author='Takeshi Komiya',
     author_email='i.tkomiya at gmail.com',
-    url='http://blockdiag.com/',
+    url='https://bitbucket.org/tk0miya/diff-highlight',
     download_url='http://pypi.python.org/pypi/diff-highlight',
     license='Apache License 2.0',
     py_modules=['diff_highlight'],
