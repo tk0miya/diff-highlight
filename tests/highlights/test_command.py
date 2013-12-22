@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+from mock import patch
 from highlights.command import highlight_main
 
 if sys.version_info < (2, 7):
@@ -11,11 +12,6 @@ if sys.version_info < (3, 0):
     from cStringIO import StringIO
 else:
     from io import StringIO
-
-if sys.version_info > (2, 5):
-    from mock import patch
-else:
-    patch = lambda *args: lambda fn: None
 
 version_info = sys.version_info
 
