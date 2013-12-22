@@ -12,7 +12,7 @@ else:
 class TestDiffHighlight(unittest.TestCase):
     def test_colorui(self):
         import curses
-        curses.setupterm(None, 1)
+        curses.setupterm("xterm", 1)
         color._styles['diff.inserted_highlight'] = 'green inverse'
         color._styles['diff.deleted_highlight'] = 'red inverse'
 
