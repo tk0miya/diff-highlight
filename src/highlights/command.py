@@ -80,6 +80,3 @@ def write(string, color=None, highlight=False):
 
     if highlight or color:
         sys.stdout.write("\x1b[%dm" % colortable['none'])
-
-
-highlight_main()
