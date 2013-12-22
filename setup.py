@@ -19,6 +19,8 @@ classifiers = [
 test_requires = ['mercurial']
 if sys.version_info < (2, 7):
     test_requires.append('unittest2')
+if sys.version_info > (2, 4):
+    test_requires.append('mock')
 
 setup(
     name='diff-highlight',
