@@ -8,13 +8,12 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-try:
+if sys.version_info > (2, 4):
     from mock import patch
-except:
-    pass
+else:
+    patch = lambda *args: lambda fn: None
 
 
-@unittest.skipIf(sys.version_info < (2, 5), "python 2.4 is not supported")
 class TestHighlightCommand(unittest.TestCase):
     @patch("highlights.command.sys")
     def test_highlight_main(self, sys):
