@@ -23,6 +23,8 @@ if sys.version_info < (2, 7):
     test_requires.append('unittest2')
 if sys.version_info > (2, 4):
     test_requires.append('mock')
+else:
+    test_requires.append('mock==0.8.0')
 
 setup(
     name='diff-highlight',
