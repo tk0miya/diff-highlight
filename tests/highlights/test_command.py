@@ -8,7 +8,7 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-if sys.version_info > (2, 4):
+if sys.version_info > (2, 5):
     from mock import patch
 else:
     patch = lambda *args: lambda fn: None
