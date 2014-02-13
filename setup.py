@@ -18,13 +18,20 @@ classifiers = [
     "Topic :: Text Processing :: Filters",
 ]
 
-test_requires = ['mercurial']
+test_requires = ['nose', 'flake8']
+
+if sys.version_info < (2, 4):
+    test_requires.append('mock==0.8.0')
+    test_requires.append('six==1.4.1')
+else:
+    test_requires.append('mock')
+    test_requires.append('six')
+
 if sys.version_info < (2, 7):
     test_requires.append('unittest2')
-if sys.version_info > (2, 4):
-    test_requires.append('mock')
-else:
-    test_requires.append('mock==0.8.0')
+
+if sys.version_info < (3, 0):
+    test_requires.append('mercurial')
 
 setup(
     name='diff-highlight',
@@ -42,6 +49,9 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
+    extras_require={
+        'testing': test_requires,
+    },
     tests_require=test_requires,
     entry_points="""
        [console_scripts]
