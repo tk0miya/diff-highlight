@@ -1,6 +1,19 @@
 `diff-highlight`: pretty diff highlighter; emphasis changed words in diff
 
-This mercurial extension adds word highlights to every diff outputs.
+diff-highlight adds word highlighting feature to git, mercurial and other diff viewers.
+
+.. image:: https://drone.io/bitbucket.org/tk0miya/diff-highlight/status.png
+   :target: https://drone.io/bitbucket.org/tk0miya/diff-highlight
+   :alt: drone.io CI build status
+
+.. image:: https://pypip.in/v/diff-highlight/badge.png
+   :target: https://pypi.python.org/pypi/diff-highlight/
+   :alt: Latest PyPI version
+
+.. image:: https://pypip.in/d/diff-highlight/badge.png
+   :target: https://pypi.python.org/pypi/diff-highlight/
+   :alt: Number of PyPI downloads
+
 Features
 ========
 * Add highlights to diff output
