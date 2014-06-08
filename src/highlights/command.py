@@ -35,7 +35,7 @@ def highlight_main():
             if stripped.startswith('@'):
                 in_header = False
         else:
-            if not re.match('^[ +\-@\\\\]', stripped):
+            if not re.match('^(?:[ +\-@\\\\]|diff)', stripped):
                 in_header = True
 
         if in_header:
