@@ -51,6 +51,11 @@ Apache License 2.0
 History
 =======
 
+1.0.2 (2014-06-08)
+-------------------
+* Fix result of diff-highlight commannd is broken when diff-text includes new file
+  (thanks @troter)
+
 1.0.1 (2013-12-22)
 -------------------
 * Fix diff-highlight command failed with python 2.4
