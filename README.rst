@@ -64,6 +64,10 @@ Apache License 2.0
 History
 =======
 
+1.1.0 (unreleased)
+-------------------
+* Drop py24 and py25 support
+
 1.0.3 (2015-03-30)
 -------------------
 * Ignore IOError on showing result
