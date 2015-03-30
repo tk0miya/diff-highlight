@@ -35,7 +35,7 @@ if sys.version_info < (3, 0):
 
 setup(
     name='diff-highlight',
-    version='1.0.2',
+    version='1.0.3',
     description='pretty diff highlighter; emphasis changed words in diff',
     long_description=open("README.rst").read(),
     classifiers=classifiers,

@@ -64,6 +64,10 @@ Apache License 2.0
 History
 =======
 
+1.0.3 (2015-03-30)
+-------------------
+* Ignore IOError on showing result
+
 1.0.2 (2014-06-08)
 -------------------
 * Fix result of diff-highlight commannd is broken when diff-text includes new file
