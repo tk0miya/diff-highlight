@@ -22,34 +22,37 @@ colortable = {'none': 0, 'red': 31, 'green': 32}
 
 
 def highlight_main():
-    new, old = [], []
-    in_header = True
-    for rawline in sys.stdin:
-        if sys.version_info < (3, 0):
-            rawline = rawline.decode('utf-8')
+    try:
+        new, old = [], []
+        in_header = True
+        for rawline in sys.stdin:
+            if sys.version_info < (3, 0):
+                rawline = rawline.decode('utf-8')
 
-        # strip ESC chars and CR/LF
-        stripped = re.sub('\x1b\[[0-9;]*m', '', rawline.rstrip("\r\n"))
+            # strip ESC chars and CR/LF
+            stripped = re.sub('\x1b\[[0-9;]*m', '', rawline.rstrip("\r\n"))
 
-        if in_header:
-            if stripped.startswith('@'):
-                in_header = False
-        else:
-            if not re.match('^(?:[ +\-@\\\\]|diff)', stripped):
-                in_header = True
+            if in_header:
+                if stripped.startswith('@'):
+                    in_header = False
+            else:
+                if not re.match('^(?:[ +\-@\\\\]|diff)', stripped):
+                    in_header = True
 
-        if in_header:
-            write(rawline)
-        elif stripped.startswith('+'):
-            new.append(stripped)
-        elif stripped.startswith('-'):
-            old.append(stripped)
-        else:
-            show_hunk(new, old)
-            new, old = [], []
-            write(rawline)
+            if in_header:
+                write(rawline)
+            elif stripped.startswith('+'):
+                new.append(stripped)
+            elif stripped.startswith('-'):
+                old.append(stripped)
+            else:
+                show_hunk(new, old)
+                new, old = [], []
+                write(rawline)
 
-    show_hunk(new, old)  # flush last hunk
+        show_hunk(new, old)  # flush last hunk
+    except IOError:
+        pass
 
 
 def show_hunk(new, old):
