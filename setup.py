@@ -7,8 +7,6 @@ classifiers = [
     "Intended Audience :: System Administrators",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 2.4",
-    "Programming Language :: Python :: 2.5",
     "Programming Language :: Python :: 2.6",
     "Programming Language :: Python :: 2.7",
     "Programming Language :: Python :: 3.2",
@@ -18,14 +16,7 @@ classifiers = [
     "Topic :: Text Processing :: Filters",
 ]
 
-test_requires = ['nose', 'flake8']
-
-if sys.version_info < (2, 4):
-    test_requires.append('mock==0.8.0')
-    test_requires.append('six==1.4.1')
-else:
-    test_requires.append('mock')
-    test_requires.append('six')
+test_requires = ['nose', 'flake8', 'mock', 'six']
 
 if sys.version_info < (2, 7):
     test_requires.append('unittest2')
