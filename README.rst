@@ -2,17 +2,11 @@
 
 diff-highlight adds word highlighting feature to git, mercurial and other diff viewers.
 
-.. image:: https://drone.io/bitbucket.org/tk0miya/diff-highlight/status.png
-   :target: https://drone.io/bitbucket.org/tk0miya/diff-highlight
-   :alt: drone.io CI build status
+.. image:: https://travis-ci.org/tk0miya/diff-highlight.svg?branch=master
+   :target: https://travis-ci.org/tk0miya/diff-highlight
 
-.. image:: https://pypip.in/v/diff-highlight/badge.png
-   :target: https://pypi.python.org/pypi/diff-highlight/
-   :alt: Latest PyPI version
-
-.. image:: https://pypip.in/d/diff-highlight/badge.png
-   :target: https://pypi.python.org/pypi/diff-highlight/
-   :alt: Number of PyPI downloads
+.. image:: https://coveralls.io/repos/tk0miya/diff-highlight/badge.png?branch=master
+   :target: https://coveralls.io/r/tk0miya/diff-highlight?branch=master
 
 Features
 ========
