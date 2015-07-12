@@ -61,9 +61,10 @@ Apache License 2.0
 History
 =======
 
-1.1.0 (unreleased)
+1.1.0 (2015-07-12)
 -------------------
 * Drop py24 and py25 support
+* Support git styled diff
 
 1.0.3 (2015-03-30)
 -------------------
