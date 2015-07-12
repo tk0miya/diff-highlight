@@ -33,17 +33,15 @@ def highlight_main():
             stripped = re.sub('\x1b\[[0-9;]*m', '', rawline.rstrip("\r\n"))
 
             if in_header:
-                if stripped.startswith('@'):
+                if re.match('^(@|commit \w+$)', stripped):
                     in_header = False
             else:
                 if not re.match('^(?:[ +\-@\\\\]|diff)', stripped):
                     in_header = True
 
-            if in_header:
-                write(rawline)
-            elif stripped.startswith('+'):
+            if not in_header and stripped.startswith('+'):
                 new.append(stripped)
-            elif stripped.startswith('-'):
+            elif not in_header and stripped.startswith('-'):
                 old.append(stripped)
             else:
                 show_hunk(new, old)

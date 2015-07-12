@@ -83,13 +83,6 @@ class TestHighlightCommand(unittest.TestCase):
         highlight_main()
 
         lines = sys.stdout.getvalue().splitlines()
-        diff = ["@@ -0,0 +1,1 @@\n",
-                "+aaa\n",
-                "diff --git a/exist.txt b/exist.txt\n",
-                "index 1d95c52..8bffa50 100644\n",
-                "@@ -0,0 +1,1 @@\n",
-                "-bbbb\n",
-                "+aaaa\n"]
 
         self.assertEqual(9, len(lines))
         self.assertEqual("--- /dev/null", lines[0])
@@ -101,3 +94,46 @@ class TestHighlightCommand(unittest.TestCase):
         self.assertEqual("@@ -0,0 +1,1 @@", lines[6])
         self.assertEqual("%s-bbbb%s" % (start(31), stop), lines[7])
         self.assertEqual("%s+aaaa%s" % (start(32), stop), lines[8])
+
+    @patch("highlights.command.sys")
+    def test_highlight_for_git_diff(self, sys):
+        # git styled diff
+        diff = ["commit 59f7d0c38d29e3796f554a5e3c60b8ca55a69814\n",
+                "Author: Takeshi KOMIYA <i.tkomiya@gmail.com>\n",
+                "Date:   Sun Jul 12 14:21:55 2015 +0900\n",
+                "\n",
+                "    add bar\n",
+                "\n",
+                "diff --git a/bar b/bar\n",
+                "new file mode 100644\n",
+                "index 0000000..5716ca5\n",
+                "--- /dev/null\n",
+                "+++ b/bar\n",
+                "@@ -0,0 +1 @@\n",
+                "+a\n",
+                "b\n",
+                "c\n"]
+        sys.stdin = diff
+        sys.stdout = StringIO()
+        sys.version_info = version_info
+
+        highlight_main()
+
+        lines = sys.stdout.getvalue().splitlines()
+
+        self.assertEqual(15, len(lines))
+        self.assertEqual("commit 59f7d0c38d29e3796f554a5e3c60b8ca55a69814", lines[0])
+        self.assertEqual("Author: Takeshi KOMIYA <i.tkomiya@gmail.com>", lines[1])
+        self.assertEqual("Date:   Sun Jul 12 14:21:55 2015 +0900", lines[2])
+        self.assertEqual("", lines[3])
+        self.assertEqual("    add bar", lines[4])
+        self.assertEqual("", lines[5])
+        self.assertEqual("diff --git a/bar b/bar", lines[6])
+        self.assertEqual("new file mode 100644", lines[7])
+        self.assertEqual("index 0000000..5716ca5", lines[8])
+        self.assertEqual("--- /dev/null", lines[9])
+        self.assertEqual("+++ b/bar", lines[10])
+        self.assertEqual("@@ -0,0 +1 @@", lines[11])
+        self.assertEqual("%s+a%s" % (start(32), stop), lines[12])
+        self.assertEqual("b", lines[13])
+        self.assertEqual("c", lines[14])
