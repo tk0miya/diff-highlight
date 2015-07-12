@@ -8,6 +8,9 @@ diff-highlight adds word highlighting feature to git, mercurial and other diff v
 .. image:: https://coveralls.io/repos/tk0miya/diff-highlight/badge.png?branch=master
    :target: https://coveralls.io/r/tk0miya/diff-highlight?branch=master
 
+.. image:: https://codeclimate.com/github/tk0miya/diff-highlight/badges/gpa.svg
+   :target: https://codeclimate.com/github/tk0miya/diff-highlight
+
 Features
 ========
 * Add highlights to diff output
