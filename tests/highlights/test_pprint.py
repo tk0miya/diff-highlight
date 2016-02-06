@@ -14,7 +14,7 @@ else:
 
 class TestPPrint(unittest.TestCase):
     def test_pprint_hunk(self):
-        #new, new_lo, new_hi, old, old_lo, old_hi):
+        # new, new_lo, new_hi, old, old_lo, old_hi):
         new = [u("+print 'hello', 'world'"),
                u("+"),
                u("+"),

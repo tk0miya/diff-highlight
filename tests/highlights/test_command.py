@@ -15,10 +15,16 @@ else:
 
 version_info = sys.version_info
 
+
 # ESC utility
-start = lambda *colors: "".join("\x1b[%dm" % c for c in colors)
+def start(*colors):
+    return "".join("\x1b[%dm" % c for c in colors)
+
 stop = start(0)
-restart = lambda *colors: stop + start(*colors)
+
+
+def restart(*colors):
+    return stop + start(*colors)
 
 
 class TestHighlightCommand(unittest.TestCase):

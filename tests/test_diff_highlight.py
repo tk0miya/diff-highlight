@@ -42,8 +42,12 @@ class TestDiffHighlight(unittest.TestCase):
         ui.write("\n", '')
 
         stop = "\x1b(B\x1b[m"
-        start = lambda *colors: stop + "".join("\x1b[%dm" % c for c in colors)
-        restart = lambda *colors: stop + start(*colors)
+
+        def start(*colors):
+            return stop + "".join("\x1b[%dm" % c for c in colors)
+
+        def restart(*colors):
+            return stop + start(*colors)
 
         if mercurial_version() >= "3.7.0":
             lines = ui.popbuffer().splitlines()
