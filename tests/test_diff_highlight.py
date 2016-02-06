@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-from mercurial.util import version as mercurial_version
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -10,6 +9,7 @@ else:
 if sys.version_info < (3, 0):
     from hgext import color
     from diff_highlight import colorui
+    from mercurial.util import version as mercurial_version
 else:
     color = None
 
