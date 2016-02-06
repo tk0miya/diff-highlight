@@ -60,6 +60,9 @@ NORMAL = 0
 INSERTED = 1
 DELETED = 2
 
+# magic numbers
+APPENDED_CHECK_THRESHOLD = 40
+
 
 def pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
     # derived from difflib.py (Python stdlib) Differ#_fancy_replace()
@@ -74,6 +77,12 @@ def pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
                cruncher.quick_ratio() > best_ratio and
                cruncher.ratio() > best_ratio):
                 best_ratio, best_i, best_j = cruncher.ratio(), i, j
+            elif len(old[j]) >= APPENDED_CHECK_THRESHOLD:
+                # not close matches, but similar (changed a little and appended large texts)
+                matched = sum(b[2] for b in cruncher.get_matching_blocks())
+                ratio = float(matched) / len(old[j])
+                if ratio > best_ratio:
+                    best_ratio, best_i, best_j = ratio, i, j
 
     # no non-identical "pretty close" pair
     if best_ratio < cutoff:

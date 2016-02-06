@@ -73,6 +73,35 @@ class TestPPrint(unittest.TestCase):
         self.assertEqual((u("'"), INSERTED, False), pairs[10])
         self.assertEqual((u("\n"), NORMAL, False), pairs[11])
 
+    def test_highlight_appended_text(self):
+        # new, new_lo, new_hi, old, old_lo, old_hi):
+        new = [u("+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor "
+                 "incididunt ut labore et commodo magna aliqua. Ut enim ad minim veniam, quis "
+                 "nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
+                 "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu "
+                 "fugiat nulla pariatur.")]
+        old = [u("-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor "
+                 "incididunt ut labore et dolore magna aliqua.")]
+        ret = pprint_hunk(new, 0, 1, old, 0, 1)
+
+        pairs = list(ret)
+        self.assertEqual(10, len(pairs))
+        self.assertEqual((u("-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                            "tempor incididunt ut labore et "), DELETED, False), pairs[0])
+        self.assertEqual((u("dolore"), DELETED, True), pairs[1])
+        self.assertEqual((u(" magna aliqua."), DELETED, False), pairs[2])
+        self.assertEqual((u(""), DELETED, True), pairs[3])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[4])
+        self.assertEqual((u("+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+                            "tempor incididunt ut labore et "), INSERTED, False), pairs[5])
+        self.assertEqual((u("commodo"), INSERTED, True), pairs[6])
+        self.assertEqual((u(" magna aliqua."), INSERTED, False), pairs[7])
+        self.assertEqual((u(" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi "
+                            "ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit "
+                            "in voluptate velit esse cillum dolore eu fugiat nulla pariatur."),
+                          INSERTED, True), pairs[8])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[9])
+
     def test_is_mergeable(self):
         # True/False/True -> ok
         new = [('A', None, True), ('B', None, False), ('C', None, True)]
