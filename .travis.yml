@@ -6,6 +6,8 @@ env:
     - TOXENV=py32
     - TOXENV=py33
     - TOXENV=py34
+    - TOXENV=hg35
+    - TOXENV=hg36
     - TOXENV=coverage
 install: pip install docutils tox
 script: tox
