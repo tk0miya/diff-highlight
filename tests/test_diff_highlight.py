@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+from mercurial.util import version as mercurial_version
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -22,7 +23,10 @@ class TestDiffHighlight(unittest.TestCase):
         color._styles['diff.deleted_highlight'] = 'red inverse'
 
         ui = colorui()
-        ui.pushbuffer()
+        if mercurial_version() >= "3.7.0":
+            ui.pushbuffer(labeled=True)
+        else:
+            ui.pushbuffer()
 
         ui.write("@@ -10,4 +10,6 @@")
         ui.write("\n", '')
@@ -41,7 +45,10 @@ class TestDiffHighlight(unittest.TestCase):
         start = lambda *colors: stop + "".join("\x1b[%dm" % c for c in colors)
         restart = lambda *colors: stop + start(*colors)
 
-        lines = ui.popbuffer(True).splitlines()
+        if mercurial_version() >= "3.7.0":
+            lines = ui.popbuffer().splitlines()
+        else:
+            lines = ui.popbuffer(True).splitlines()
         self.assertEqual(9, len(lines))
         self.assertEqual("@@ -10,4 +10,6 @@", lines[0])
         self.assertEqual(" ", lines[1])
