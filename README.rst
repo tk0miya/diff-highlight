@@ -61,6 +61,12 @@ Apache License 2.0
 History
 =======
 
+1.2.0 (2016-02-07)
+-------------------
+* Grouping indented hunks
+* Fix #1: highlight if large text appended
+* Fix mercurial extension has been broken since mercurial-3.7.0
+
 1.1.0 (2015-07-12)
 -------------------
 * Drop py24 and py25 support
