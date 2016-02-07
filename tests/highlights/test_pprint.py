@@ -4,7 +4,7 @@ import sys
 from six import u
 from difflib import SequenceMatcher
 from highlights.pprint import NORMAL, INSERTED, DELETED
-from highlights.pprint import pprint_hunk, pprint_pair, is_mergeable
+from highlights.pprint import pprint_hunk, highlight_pair, is_mergeable
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -52,11 +52,11 @@ class TestPPrint(unittest.TestCase):
         self.assertEqual((u("'"), INSERTED, True), pairs[24])
         self.assertEqual((u("\n"), NORMAL, False), pairs[25])
 
-    def test_pprint_pair(self):
+    def test_highlight_pair(self):
         cruncher = SequenceMatcher()
-        ret = pprint_pair(cruncher,
-                          "+print 'hello', 'world'",
-                          "-print 'nice', 'boat'")
+        ret = highlight_pair(cruncher,
+                             "+print 'hello', 'world'",
+                             "-print 'nice', 'boat'")
 
         pairs = list(ret)
         self.assertEqual(12, len(pairs))
@@ -101,6 +101,36 @@ class TestPPrint(unittest.TestCase):
                             "in voluptate velit esse cillum dolore eu fugiat nulla pariatur."),
                           INSERTED, True), pairs[8])
         self.assertEqual((u("\n"), NORMAL, False), pairs[9])
+
+    def test_highlight_indented_lines(self):
+        # new, new_lo, new_hi, old, old_lo, old_hi):
+        new = [u("+class Foo(object):"),
+               u("+    def hello(name):"),
+               u("+        print 'Hello ', name")]
+        old = [u("-def hello(name):"),
+               u("-    print 'Hello ', name")]
+        ret = pprint_hunk(new, 0, 3, old, 0, 2)
+
+        pairs = list(ret)
+        self.assertEqual(18, len(pairs))
+        self.assertEqual((u("+class Foo(object):"), INSERTED, False), pairs[0])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[1])
+        self.assertEqual((u("-"), DELETED, False), pairs[2])
+        self.assertEqual((u(""), DELETED, True), pairs[3])
+        self.assertEqual((u("def hello(name):"), DELETED, False), pairs[4])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[5])
+        self.assertEqual((u("-"), DELETED, False), pairs[6])
+        self.assertEqual((u(""), DELETED, True), pairs[7])
+        self.assertEqual((u("    print 'Hello ', name"), DELETED, False), pairs[8])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[9])
+        self.assertEqual((u("+"), INSERTED, False), pairs[10])
+        self.assertEqual((u("    "), INSERTED, True), pairs[11])
+        self.assertEqual((u("def hello(name):"), INSERTED, False), pairs[12])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[13])
+        self.assertEqual((u("+"), INSERTED, False), pairs[14])
+        self.assertEqual((u("    "), INSERTED, True), pairs[15])
+        self.assertEqual((u("    print 'Hello ', name"), INSERTED, False), pairs[16])
+        self.assertEqual((u("\n"), NORMAL, False), pairs[17])
 
     def test_is_mergeable(self):
         # True/False/True -> ok

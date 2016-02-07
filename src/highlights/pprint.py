@@ -65,6 +65,18 @@ APPENDED_CHECK_THRESHOLD = 40
 
 
 def pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
+    lines = [[]]
+    for hunk in highlight_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
+        lines[-1].append(hunk)
+        if hunk[0] == "\n":
+            lines.append([])
+    if lines[-1] == []:
+        lines.pop()
+
+    return arrange_indented_hunks(lines)
+
+
+def highlight_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
     # derived from difflib.py (Python stdlib) Differ#_fancy_replace()
     best_ratio, cutoff = 0.59, 0.60
 
@@ -95,22 +107,22 @@ def pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
 
         return
 
-    for hunk in pprint_hunk_helper(new, new_lo, best_i, old, old_lo, best_j):
+    for hunk in highlight_hunk_helper(new, new_lo, best_i, old, old_lo, best_j):
         yield hunk
 
-    for hunk in pprint_pair(cruncher, new[best_i], old[best_j]):
+    for hunk in highlight_pair(cruncher, new[best_i], old[best_j]):
         yield hunk
 
-    for hunk in pprint_hunk_helper(new, best_i + 1, new_hi,
-                                   old, best_j + 1, old_hi):
+    for hunk in highlight_hunk_helper(new, best_i + 1, new_hi,
+                                      old, best_j + 1, old_hi):
         yield hunk
 
 
-def pprint_hunk_helper(new, new_lo, new_hi, old, old_lo, old_hi):
+def highlight_hunk_helper(new, new_lo, new_hi, old, old_lo, old_hi):
     # derived from difflib.py (Python stdlib) Differ#_fancy_helper()
     if new_lo < new_hi:
         if old_lo < old_hi:
-            for hunk in pprint_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
+            for hunk in highlight_hunk(new, new_lo, new_hi, old, old_lo, old_hi):
                 yield hunk
         else:
             for line in new[new_lo:new_hi]:
@@ -122,7 +134,7 @@ def pprint_hunk_helper(new, new_lo, new_hi, old, old_lo, old_hi):
             yield "\n", NORMAL, False
 
 
-def pprint_pair(cruncher, newline, oldline):
+def highlight_pair(cruncher, newline, oldline):
     new = [[newline[0], INSERTED, False]]
     old = [[oldline[0], DELETED, False]]
 
@@ -200,3 +212,51 @@ def is_mergeable(new, old, i):
         return True
 
     return False
+
+
+def arrange_indented_hunks(lines):
+    result = []
+
+    def typeof(line):
+        return line[0][0][0:1]  # +, - or other
+
+    def flushline(line):
+        result.extend(line)
+
+    def flushlines(lines):
+        for line in lines[:]:
+            flushline(line)
+            lines.remove(line)
+
+    def only_indented(deleted, inserted):
+        if (inserted[0][0] == "+" and re.match('^\s*$', inserted[1][0]) and
+           deleted[0][0] == "-" and re.match('^\s*$', deleted[1][0])):
+            return True
+        else:
+            return False
+
+    lastline = [("", NORMAL)]  # dummy
+    inserted = []
+    deleted = []
+    for line in lines:
+        if typeof(lastline) == typeof(line) or typeof(line) not in ('+', '-'):
+            flushlines(deleted)
+            flushlines(inserted)
+
+        if typeof(line) == '-':
+            deleted.append(line)
+        elif typeof(line) == '+':
+            if deleted and only_indented(deleted[-1], line):
+                inserted.append(line)
+            else:
+                flushlines(deleted)
+                flushline(line)
+        else:
+            flushline(line)
+
+        lastline = line
+
+    flushlines(deleted)
+    flushlines(inserted)
+
+    return result
