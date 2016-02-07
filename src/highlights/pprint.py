@@ -229,8 +229,8 @@ def arrange_indented_hunks(lines):
             lines.remove(line)
 
     def only_indented(deleted, inserted):
-        if (inserted[0][0] == "+" and re.match('^\s*$', inserted[1][0]) and
-           deleted[0][0] == "-" and re.match('^\s*$', deleted[1][0])):
+        if (inserted[0][0] == "+" and re.match('^\s*$', inserted[1][0]) and len(inserted) == 4 and
+           deleted[0][0] == "-" and re.match('^\s*$', deleted[1][0]) and len(deleted) == 4):
             return True
         else:
             return False
