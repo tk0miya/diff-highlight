@@ -1,0 +1,146 @@
+diff --git a/CHANGES b/CHANGES
+index 117a7bc..0a61b6b 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -106,7 +106,7 @@ Features added
+ * #2320: classifier of glossary terms can be used for index entries grouping key.
+   The classifier also be used for translation. See also :ref:`glossary-directive`.
+ * Select an image by similarity if multiple images are globbed by ``.. image:: filename.*``
+-* #1921: Support figure substitutions by :confval:`language`
++* #1921: Support figure substitutions by :confval:`language` and :confval:`figure_language_filename`
+ 
+ Bugs fixed
+ ----------
+diff --git a/doc/config.rst b/doc/config.rst
+index 99ca15f..5fcc7cf 100644
+--- a/doc/config.rst
++++ b/doc/config.rst
+@@ -547,6 +547,14 @@ documentation on :ref:`intl` for details.
+ 
+    .. versionadded:: 1.3
+ 
++.. confval:: figure_language_filename
++
++   The filename format for language-specific figures.  The default value is
++   ``{root}.{language}{ext}``.  It will be expanded to
++   ``dirname/filename.en.png`` from ``.. image:: dirname/filename.png``.
++
++   .. versionadded:: 1.4
++
+ .. _html-options:
+ 
+ Options for HTML output
+diff --git a/sphinx/config.py b/sphinx/config.py
+index 5b99c64..ba3dc11 100644
+--- a/sphinx/config.py
++++ b/sphinx/config.py
+@@ -53,6 +53,7 @@ class Config(object):
+ 
+         language = (None, 'env', [str]),
+         locale_dirs = ([], 'env'),
++        figure_language_filename = ('{root}.{language}{ext}', 'env', [str]),
+ 
+         master_doc = ('contents', 'env'),
+         source_suffix = (['.rst'], 'env'),
+diff --git a/sphinx/util/i18n.py b/sphinx/util/i18n.py
+index 28170c3..94492ff 100644
+--- a/sphinx/util/i18n.py
++++ b/sphinx/util/i18n.py
+@@ -197,10 +197,11 @@ def get_image_filename_for_language(filename, env):
+     if not env.config.language:
+         return filename
+ 
++    filename_format = env.config.figure_language_filename
+     root, ext = path.splitext(filename)
+     try:
+-        return "{root}.{language}{ext}".format(root=root, ext=ext,
+-                                               language=env.config.language)
++        return filename_format.format(root=root, ext=ext,
++                                      language=env.config.language)
+     except KeyError as exc:
+         raise SphinxError('Invalid figure_language_filename: %r' % exc)
+ 
+diff --git a/tests/roots/test-image-glob/rimg.png.xx b/tests/roots/test-image-glob/rimg.png.xx
+new file mode 100644
+index 0000000..1081dc1
+Binary files /dev/null and b/tests/roots/test-image-glob/rimg.png.xx differ
+diff --git a/tests/test_intl.py b/tests/test_intl.py
+index 61079b2..29d068d 100644
+--- a/tests/test_intl.py
++++ b/tests/test_intl.py
+@@ -837,3 +837,46 @@ def test_image_glob_intl(app, status, warning):
+     assert_node(doctree[0][3][0], nodes.image, uri='subdir/svgimg.*',
+                 candidates={'application/pdf': 'subdir/svgimg.pdf',
+                             'image/svg+xml': 'subdir/svgimg.xx.svg'})
++
++
++@with_app(buildername='dummy', testroot='image-glob',
++          confoverrides={'language': 'xx',
++                         'figure_language_filename': '{root}{ext}.{language}'})
++def test_image_glob_intl_using_figure_language_filename(app, status, warning):
++    app.builder.build_all()
++
++    # index.rst
++    doctree = pickle.loads((app.doctreedir / 'index.doctree').bytes())
++
++    assert_node(doctree[0][1], nodes.image, uri='rimg.png.xx',
++                candidates={'*': 'rimg.png.xx'})
++
++    assert isinstance(doctree[0][2], nodes.figure)
++    assert_node(doctree[0][2][0], nodes.image, uri='rimg.png.xx',
++                candidates={'*': 'rimg.png.xx'})
++
++    assert_node(doctree[0][3], nodes.image, uri='img.*',
++                candidates={'application/pdf': 'img.pdf',
++                            'image/gif': 'img.gif',
++                            'image/png': 'img.png'})
++
++    assert isinstance(doctree[0][4], nodes.figure)
++    assert_node(doctree[0][4][0], nodes.image, uri='img.*',
++                candidates={'application/pdf': 'img.pdf',
++                            'image/gif': 'img.gif',
++                            'image/png': 'img.png'})
++
++    # subdir/index.rst
++    doctree = pickle.loads((app.doctreedir / 'subdir/index.doctree').bytes())
++
++    assert_node(doctree[0][1], nodes.image, uri='subdir/rimg.png',
++                candidates={'*': 'subdir/rimg.png'})
++
++    assert_node(doctree[0][2], nodes.image, uri='subdir/svgimg.*',
++                candidates={'application/pdf': 'subdir/svgimg.pdf',
++                            'image/svg+xml': 'subdir/svgimg.svg'})
++
++    assert isinstance(doctree[0][3], nodes.figure)
++    assert_node(doctree[0][3][0], nodes.image, uri='subdir/svgimg.*',
++                candidates={'application/pdf': 'subdir/svgimg.pdf',
++                            'image/svg+xml': 'subdir/svgimg.svg'})
+diff --git a/tests/test_util_i18n.py b/tests/test_util_i18n.py
+index 01eb48c..d6c4232 100644
+--- a/tests/test_util_i18n.py
++++ b/tests/test_util_i18n.py
+@@ -190,7 +190,6 @@ def test_get_filename_for_language():
+     app = TestApp()
+ 
+     # language is None
+-    app.env.config.language = None
+     assert app.env.config.language is None
+     assert i18n.get_image_filename_for_language('foo.png', app.env) == 'foo.png'
+     assert i18n.get_image_filename_for_language('foo.bar.png', app.env) == 'foo.bar.png'
+@@ -214,3 +213,16 @@ def test_get_filename_for_language():
+     assert i18n.get_image_filename_for_language('subdir/foo.png', app.env) == 'subdir/foo.png'
+     assert i18n.get_image_filename_for_language('../foo.png', app.env) == '../foo.png'
+     assert i18n.get_image_filename_for_language('foo', app.env) == 'foo'
++
++    # modify figure_language_filename and language is 'en'
++    app.env.config.language = 'en'
++    app.env.config.figure_language_filename = 'images/{language}/{root}{ext}'
++    assert i18n.get_image_filename_for_language('foo.png', app.env) == 'images/en/foo.png'
++    assert i18n.get_image_filename_for_language('foo.bar.png', app.env) == 'images/en/foo.bar.png'
++    assert i18n.get_image_filename_for_language('subdir/foo.png', app.env) == 'images/en/subdir/foo.png'
++    assert i18n.get_image_filename_for_language('../foo.png', app.env) == 'images/en/../foo.png'
++    assert i18n.get_image_filename_for_language('foo', app.env) == 'images/en/foo'
++
++    # invalid figure_language_filename
++    app.env.config.figure_language_filename = '{root}.{invalid}{ext}'
++    raises(SphinxError, i18n.get_image_filename_for_language, 'foo.png', app.env)

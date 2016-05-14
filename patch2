@@ -1,0 +1,213 @@
+diff --git a/doc/auth/index.md b/doc/auth/index.md
+index 3b48f83..4e63331 100644
+--- a/doc/auth/index.md
++++ b/doc/auth/index.md
+@@ -16,54 +16,72 @@ API クライアントは初回起動時にこの API を呼び出し、アク
+ パラメータに認証状態引き継ぎトークンが指定された場合、トークンが指し示す認証状態を引き継いでアクセストークンを生成する。
+ 
+ + Request
+-    + Accept-Language (string, required) - レスポンスの言語を指定する。`ja` もしくは `en` を指定できる。
++    + Headers Attributes
++        + Accept-Language (string, required) - レスポンスの言語を指定する。`ja` もしくは `en` を指定できる。
++
++    + Body Attributes
++        + transfer_token: `abcde...67890` (string, optional) - 認証状態引き継ぎトークン
++        + app_name: `Hulu App for iOS` (string, required) - アプリ名
++        + app_version: `1.0` (string, required) - アプリバージョン
++        + device_higher_category: `pc` (string, required) - デバイス大分類
++            + Members
++                + pc
++                + phone
++                + tablet
++                + settop
++                + tv
++                + game
++                + bluray
++                + undefined
++        + device_lower_category: `chrome` (string, required) - デバイス小分類
++            + Members
++                + safari
++                + chrome
++                + firefox
++                + internet_explorer
++                + ios
++                + android
++                + windows
++                + apple_tv
++                + nexus_player
++                + chromecast
++                + playstation_vita_tv
++                + android_tv
++                + other
++                + playstation_3
++                + playstation_4
++                + playstation_vita
++                + wii_u
++                + bluray
++                + undefined
++        + is_mobile: `true` (boolean, optional) - モバイル端末か据え置き端末か
++        + os_version: `9.0` (string, optional) - OSバージョン
++        + os_build_id: `1234.56` (string, optional) - OS Build ID
++        + device_manufacturer: `Apple` (string, optional) - メーカー名
++        + device_model: `iPhone6s` (string, optional) - 型番
++        + device_name: `Takeshi KOMIYA の iPhone` (string, optional) - デバイス固有名称
++        + user_agent: `Mozilla/5.0 (PlayStation 4 1.51) AppleWebKit/536.26 (KHTML, like Gecko)` (string, optional) - User-Agent
+ 
+     + Headers
+ 
+         Accept-Language: ja
+ 
+-+ Parameters
+-    + transfer_token: `abcde...67890` (string, optional) - 認証状態引き継ぎトークン
+-    + app_name: `Hulu App for iOS` (string, required) - アプリ名
+-    + app_version: `1.0` (string, required) - アプリバージョン
+-    + device_higher_category: `pc` (string, required) - デバイス大分類
+-        + Members
+-            + pc
+-            + phone
+-            + tablet
+-            + settop
+-            + tv
+-            + game
+-            + bluray
+-            + undefined
+-    + device_lower_category: `chrome` (string, required) - デバイス小分類
+-        + Members
+-            + safari
+-            + chrome
+-            + firefox
+-            + internet_explorer
+-            + ios
+-            + android
+-            + windows
+-            + apple_tv
+-            + nexus_player
+-            + chromecast
+-            + playstation_vita_tv
+-            + android_tv
+-            + other
+-            + playstation_3
+-            + playstation_4
+-            + playstation_vita
+-            + wii_u
+-            + bluray
+-            + undefined
+-    + is_mobile: `true` (boolean, optional) - モバイル端末か据え置き端末か
+-    + os_version: `9.0` (string, optional) - OSバージョン
+-    + os_build_id: `1234.56` (string, optional) - OS Build ID
+-    + device_manufacturer: `Apple` (string, optional) - メーカー名
+-    + device_model: `iPhone6s` (string, optional) - 型番
+-    + device_name: `Takeshi KOMIYA の iPhone` (string, optional) - デバイス固有名称
+-    + user_agent: `Mozilla/5.0 (PlayStation 4 1.51) AppleWebKit/536.26 (KHTML, like Gecko)` (string, optional) - User-Agent
++    + Body
++
++        {
++            "transfer_token": "abcde...67890",
++            "app_name": "Hulu App for iOS",
++            "app_version": "1.0",
++            "device_higher_category": "pc",
++            "device_lower_category": "chrome",
++            "is_mobile": false,
++            "os_version": "9.0",
++            "os_build_id": "1234.56",
++            "device_manufacturer": "Apple",
++            "device_model": "iPhone6s",
++            "device_name": "Takeshi KOMIYA の iPhone",
++            "user_agent": "Mozilla/5.0 (PlayStation 4 1.51) AppleWebKit/536.26 (KHTML, like Gecko)"
++        }
+ 
+ + Response 200 (application/json)
+     + Body Attributes
+@@ -166,11 +184,19 @@ API サーバは `bootstrap` パラメータに true が指定された場合、
+ 認証に成功した場合(レスポンスコード: `200`)、API クライアントは返り値に含まれる
+ アクセストークンを永続化する必要がある。
+ 
+-<!-- include(../common/_request_headers.md) -->
+++ Request
++<!-- include(../common/_request_headers_attributes.md) -->
++    + Body Attributes
++        + email: `nishio@timedia.co.jp` (string, required) - メールアドレス
++        + password: `pw123456` (string, required) - パスワード
+ 
+-+ Parameters
+-    + email: `nishio@timedia.co.jp` (string, required) - メールアドレス
+-    + password: `pw123456` (string, required) - パスワード
++<!-- include(../common/_request_headers_body.md) -->
++    + Body
++
++        {
++            "email": "nishio@timedia.co.jp",
++            "password": "pw123456"
++        }
+ 
+ + Response 200 (application/json)
+     + Body Attributes
+@@ -249,11 +275,19 @@ API サーバは `bootstrap` パラメータに true が指定された場合、
+ プロフィールの切り替えに成功した場合(レスポンスコード: `200`)、API クライアントは
+ 返り値に含まれるアクセストークンを永続化する必要がある。
+ 
+-<!-- include(../common/_request_headers.md) -->
+++ Request
++<!-- include(../common/_request_headers_attributes.md) -->
++    + Body Attributes
++        + profile_id: `1234` (string, required) - プロフィールID
++        + pincode: `1234` (string, optional) - 暗証番号
+ 
+-+ Parameters
+-    + profile_id: `1234` (string, required) - プロフィールID
+-    + pincode: `1234` (string, optional) - 暗証番号
++<!-- include(../common/_request_headers_body.md) -->
++    + Body
++
++        {
++            "profile_id": "1234",
++            "pincode": "1234"
++        }
+ 
+ + Response 200 (application/json)
+     + Body Attributes
+@@ -396,10 +430,17 @@ API サーバは `bootstrap` パラメータに true が指定された場合、
+ 特権の取得に成功した場合(レスポンスコード: `200`)、API クライアントは返り値に含まれる
+ アクセストークンを永続化する必要がある。
+ 
+-<!-- include(../common/_request_headers.md) -->
+++ Request
++<!-- include(../common/_request_headers_attributes.md) -->
++    + Body Attributes
++        + password: `pw123456` (string, required) - パスワード
+ 
+-+ Parameters
+-    + password: `pw123456` (string, required) - パスワード
++<!-- include(../common/_request_headers_body.md) -->
++    + Body
++
++        {
++            "password": "pw123456"
++        }
+ 
+ + Response 200 (application/json)
+     + Boddy Attributes
+@@ -444,11 +485,19 @@ API サーバは `bootstrap` パラメータに true が指定された場合、
+ 特権の取得に成功した場合(レスポンスコード: `200`)、API クライアントは返り値に含まれる
+ アクセストークンを永続化する必要がある。
+ 
+-<!-- include(../common/_request_headers.md) -->
+++ Request
++<!-- include(../common/_request_headers_attributes.md) -->
++    + Body Attributes
++        + profile_id: `1234` (string, required) - プロフィール ID
++        + pincode: `1234` (string, required) - 暗証番号
+ 
+-+ Parameters
+-    + profile_id: `1234` (string, required) - プロフィール ID
+-    + pincode: `1234` (string, required) - 暗証番号
++<!-- include(../common/_request_headers_body.md) -->
++    + Body
++
++        {
++            "profile_id": "1234",
++            "pincode": "1234"
++        }
+ 
+ + Response 200 (application/json)
+     + Boddy Attributes

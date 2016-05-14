@@ -1,0 +1,52 @@
+diff --git a/sphinx/environment.py b/sphinx/environment.py
+index eedb7b5..d1de866 100644
+--- a/sphinx/environment.py
++++ b/sphinx/environment.py
+@@ -962,26 +962,30 @@ class BuildEnvironment:
+ 
+     def process_images(self, docname, doctree):
+         """Process and rewrite image URIs."""
++        def identify_image(filename):
++            if filename.lower().endswith('.pdf'):
++                return 'application/pdf'
++            elif filename.lower().endswith('.svg'):
++                return 'image/svg+xml'
++            else:
++                try:
++                    with open(filename, 'rb') as f:
++                        imgtype = imghdr.what(f)
++                        if imgtype:
++                            return 'image/' + imgtype
++                except (OSError, IOError) as err:
++                    self.warn_node('image file %s not readable: %s' %
++                                   (filename, err), node)
++
++            return None
++
+         def collect_candidates(imgpath, candidates):
+             globbed = {}
+             for filename in glob(imgpath):
+-                new_imgpath = relative_path(path.join(self.srcdir, 'dummy'),
+-                                            filename)
+-                if filename.lower().endswith('.pdf'):
+-                    if 'application/pdf' not in candidates:
+-                        globbed.setdefault('application/pdf', []).append(new_imgpath)
+-                elif filename.lower().endswith('.svg'):
+-                    if 'image/svg+xml' not in candidates:
+-                        globbed.setdefault('image/svg+xml', []).append(new_imgpath)
+-                else:
+-                    try:
+-                        with open(filename, 'rb') as f:
+-                            imgtype = imghdr.what(f)
+-                    except (OSError, IOError) as err:
+-                        self.warn_node('image file %s not readable: %s' %
+-                                       (filename, err), node)
+-                    if imgtype and 'image/' + imgtype not in candidates:
+-                        globbed.setdefault('image/' + imgtype, []).append(new_imgpath)
++                new_imgpath = relative_path(path.join(self.srcdir, 'dummy'), filename)
++                mimetype = identify_image(new_imgpath)
++                if mimetype not in candidates:
++                    globbed.setdefault(mimetype, []).append(new_imgpath)
+             for key, files in iteritems(globbed):
+                 candidates[key] = sorted(files, key=len)[0]  # select by similarity
+ 
