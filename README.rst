@@ -25,7 +25,7 @@ Use easy_install or pip::
 
    Or
 
-   $ sudo pip diff-highlight
+   $ sudo pip install diff-highlight
 
 Applying to git
 ---------------
@@ -49,13 +49,13 @@ Add `color` and `diff_highlight` extensions to your $HOME/.hgrc to enable word h
 
 Requirements
 ============
-* Python 2.6, 2.7, 3.2, 3.3, 3.4
+* Python 2.6 or 2.7, or Python 3.2, 3.3, 3.4 (or higher
   (mercurial extension works on python 2.x only)
 
 License
 =======
 Apache License 2.0
-(highlights/pprint.py is under PSFL)
+(`highlights/pprint.py` is under PSFL).
 
 
 History
