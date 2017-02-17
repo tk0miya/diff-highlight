@@ -94,7 +94,10 @@ def uisetup(ui):
     def colorconfig(orig, *args, **kwargs):
         ret = orig(*args, **kwargs)
 
-        styles = color._styles
+        try:
+            from mercurial.color import _styles as styles
+        except ImportError:
+            styles = color._styles
         if INSERT_EMPH not in styles:
             styles[INSERT_EMPH] = styles[INSERT_NORM] + ' inverse'
 

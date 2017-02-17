@@ -7,7 +7,10 @@ else:
     import unittest
 
 if sys.version_info < (3, 0):
-    from hgext import color
+    try:
+        from mercurial import color
+    except ImportError:
+        from hgext import color
     from diff_highlight import colorui
     from mercurial.util import version as mercurial_version
 else:
