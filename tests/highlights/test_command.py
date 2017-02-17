@@ -20,6 +20,7 @@ version_info = sys.version_info
 def start(*colors):
     return "".join("\x1b[%dm" % c for c in colors)
 
+
 stop = start(0)
 
 
