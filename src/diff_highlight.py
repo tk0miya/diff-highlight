@@ -27,6 +27,7 @@ DELETE_EMPH = 'diff.deleted_highlight'
 
 class colorui(color.colorui):
     hunk = None
+    tab = None
 
     def __init__(self, src=None):
         super(colorui, self).__init__(src)
@@ -35,10 +36,17 @@ class colorui(color.colorui):
     def write(self, *args, **opts):
         label = opts.get('label')
         if label in (INSERT_NORM, DELETE_NORM):
-            self.hunk.append(("".join(args), opts))
+            if self.tab is not None:
+                change = self.hunk.pop()
+                self.hunk.append((change[0] + self.tab + "".join(args), change[1]))
+                self.tab = None
+            else:
+                self.hunk.append(("".join(args), opts))
         elif label == 'diff.trailingwhitespace':  # merge to hunk
             change = self.hunk.pop()
             self.hunk.append((change[0] + "".join(args), change[1]))
+        elif label == 'diff.tab':
+            self.tab = "".join(args)
         elif label == '' and args == ("\n",) and self.hunk:
             self.hunk.append((args[0], opts))
         else:
