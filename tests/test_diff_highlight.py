@@ -20,8 +20,12 @@ else:
 class TestDiffHighlight(unittest.TestCase):
     @unittest.skipIf(color is None, "mercurial is not supported py3")
     def test_colorui(self):
-        import curses
-        curses.setupterm("xterm", 1)
+        try:
+            import curses
+
+            curses.setupterm("xterm", 1)
+        except ImportError:
+            pass
         color._styles['diff.inserted_highlight'] = 'green inverse'
         color._styles['diff.deleted_highlight'] = 'red inverse'
 
