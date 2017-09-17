@@ -14,8 +14,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from hgext import color
-from mercurial import extensions
+from mercurial import extensions, ui, util
 from mercurial.i18n import _
 from highlights.pprint import INSERTED, DELETED, pprint_hunk
 
@@ -25,7 +24,7 @@ DELETE_NORM = 'diff.deleted'
 DELETE_EMPH = 'diff.deleted_highlight'
 
 
-class colorui(color.colorui):
+class colorui(ui.ui):
     hunk = None
     tab = None
 
@@ -89,23 +88,37 @@ def uisetup(ui):
         return
 
     try:
-        extensions.find('color')
-    except KeyError:
-        ui.warn(_("warning: 'diff-highlight' requires 'color' extension "
-                  "to be enabled, but not\n"))
-        return
+        from hgext import color as colorext
+
+        try:
+            extensions.find('color')
+        except KeyError:
+            ui.warn(_("warning: 'diff-highlight' requires 'color' extension "
+                      "to be enabled, but not\n"))
+            return
+    except ImportError:
+        colorext = None
+    try:
+        from mercurial import color
+    except ImportError:
+        pass
 
     if not isinstance(ui, colorui):
         colorui.__bases__ = (ui.__class__,)
         ui.__class__ = colorui
 
+    ver = tuple(int(s) if s.isdigit() else s for s in util.version().split('.'))
+
     def colorconfig(orig, *args, **kwargs):
         ret = orig(*args, **kwargs)
 
-        try:
-            from mercurial.color import _styles as styles
-        except ImportError:
+        if ver < (4, 1):
+            styles = colorext._styles
+        elif ver < (4, 2):
             styles = color._styles
+        else:
+            styles = color._defaultstyles
+
         if INSERT_EMPH not in styles:
             styles[INSERT_EMPH] = styles[INSERT_NORM] + ' inverse'
 
@@ -114,4 +127,4 @@ def uisetup(ui):
 
         return ret
 
-    extensions.wrapfunction(color, 'configstyles', colorconfig)
+    extensions.wrapfunction(colorext if ver < (4, 2) else color, 'configstyles', colorconfig)

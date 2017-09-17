@@ -8,9 +8,15 @@ else:
 
 if sys.version_info < (3, 0):
     try:
+        from hgext import color
+
+        colorext = color
+    except ImportError:
+        colorext = None
+    try:
         from mercurial import color
     except ImportError:
-        from hgext import color
+        pass
     from diff_highlight import colorui
     from mercurial.util import version as mercurial_version
 else:
@@ -26,10 +32,18 @@ class TestDiffHighlight(unittest.TestCase):
             curses.setupterm("xterm", 1)
         except ImportError:
             pass
-        color._styles['diff.inserted_highlight'] = 'green inverse'
-        color._styles['diff.deleted_highlight'] = 'red inverse'
 
         ui = colorui()
+        if mercurial_version() >= "4.2.0":
+            ui.setconfig('ui', 'color', 'always')
+            color.setup(ui)
+            styles = ui._styles
+        else:
+            colorui.__bases__ = (colorext.colorui,)
+            styles = color._styles
+        styles['diff.inserted_highlight'] = 'green inverse'
+        styles['diff.deleted_highlight'] = 'red inverse'
+
         if mercurial_version() >= "3.7.0":
             ui.pushbuffer(labeled=True)
         else:
@@ -48,13 +62,22 @@ class TestDiffHighlight(unittest.TestCase):
         ui.write(" ", '')
         ui.write("\n", '')
 
-        stop = "\x1b(B\x1b[m"
+        if mercurial_version() >= "4.2.0":
+            stop = "\x1b[0m"
 
-        def start(*colors):
-            return stop + "".join("\x1b[%dm" % c for c in colors)
+            def start(*colors):
+                return "\x1b[0;" + ";".join(str(c) for c in colors) + "m"
 
-        def restart(*colors):
-            return stop + start(*colors)
+            def restart(*colors):
+                return stop + start(*colors)
+        else:
+            stop = "\x1b(B\x1b[m"
+
+            def start(*colors):
+                return stop + "".join("\x1b[%dm" % c for c in colors)
+
+            def restart(*colors):
+                return stop + start(*colors)
 
         if mercurial_version() >= "3.7.0":
             lines = ui.popbuffer().splitlines()
