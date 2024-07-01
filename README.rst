@@ -37,6 +37,12 @@ Add pager settings to your $HOME/.gitconfig to enable word highlights::
        show = diff-highlight | less
        diff = diff-highlight | less
 
+
+and to use diff-highlight for `git add -p`::
+
+   [interactive]
+       diffFilter = diff-highlight
+
 Applying to mercurial
 ---------------------
 
