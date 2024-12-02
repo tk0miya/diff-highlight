@@ -250,6 +250,7 @@ def arrange_indented_hunks(lines):
                 inserted.append(line)
             else:
                 flushlines(deleted)
+                flushlines(inserted)
                 flushline(line)
         else:
             flushline(line)
